@@ -122,6 +122,7 @@ class BluePrintPos {
     double duration = 0,
     PaperSize paperSize = PaperSize.mm58,
   }) async {
+    paperSize = Platform.isAndroid ? PaperSize.mm72 : paperSize;
     final Uint8List bytes = await contentToImage(
       content: receiptSectionText.content,
       duration: duration,
