@@ -285,4 +285,13 @@ class BluePrintPos {
     }
     return results;
   }
+
+  Future<void> openDrawer() async {
+    if (Platform.isAndroid) {
+      return _bluetoothAndroid?.drawerPin2();
+    } else {
+      // Not supported yet
+      return;
+    }
+  }
 }
