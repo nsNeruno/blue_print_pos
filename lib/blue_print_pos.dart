@@ -1,6 +1,5 @@
 import 'dart:developer';
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:blue_print_pos/models/models.dart';
@@ -10,14 +9,12 @@ import 'package:blue_thermal_printer/blue_thermal_printer.dart' as blue_thermal;
 import 'package:esc_pos_utils_plus/esc_pos_utils.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart' as flutter_blue;
-import 'package:flutter_blue_plus/gen/flutterblueplus.pb.dart' as proto;
 import 'package:image/image.dart' as img;
 import 'package:qr_flutter/qr_flutter.dart';
 
 class BluePrintPos {
   BluePrintPos._() {
     _bluetoothAndroid = blue_thermal.BlueThermalPrinter.instance;
-    _bluetoothIOS = flutter_blue.FlutterBluePlus.instance;
   }
 
   static BluePrintPos get instance => BluePrintPos._();
@@ -26,9 +23,6 @@ class BluePrintPos {
 
   /// This field is library to handle in Android Platform
   blue_thermal.BlueThermalPrinter? _bluetoothAndroid;
-
-  /// This field is library to handle in iOS Platform
-  flutter_blue.FlutterBluePlus? _bluetoothIOS;
 
   /// Bluetooth Device model for iOS
   flutter_blue.BluetoothDevice? _bluetoothDeviceIOS;
@@ -64,18 +58,17 @@ class BluePrintPos {
         await _bluetoothAndroid?.connect(bluetoothDeviceAndroid);
       } else if (Platform.isIOS) {
         _bluetoothDeviceIOS = flutter_blue.BluetoothDevice.fromProto(
-          proto.BluetoothDevice(
-            name: selectedDevice?.name ?? '',
+          flutter_blue.BmBluetoothDevice(
             remoteId: selectedDevice?.address ?? '',
-            type: proto.BluetoothDevice_Type.valueOf(selectedDevice?.type ?? 0),
+            localName: selectedDevice?.name ?? '',
+            type: flutter_blue.BmBluetoothSpecEnum.values[selectedDevice?.type ?? 0],
           ),
         );
         final List<flutter_blue.BluetoothDevice> connectedDevices =
-            await _bluetoothIOS?.connectedDevices ??
-                <flutter_blue.BluetoothDevice>[];
+            await flutter_blue.FlutterBluePlus.connectedSystemDevices;
         final int deviceConnectedIndex = connectedDevices
             .indexWhere((flutter_blue.BluetoothDevice bluetoothDevice) {
-          return bluetoothDevice.id == _bluetoothDeviceIOS?.id;
+          return bluetoothDevice.remoteId == _bluetoothDeviceIOS?.remoteId;
         });
         if (deviceConnectedIndex < 0) {
           await _bluetoothDeviceIOS?.connect();
